@@ -28,7 +28,6 @@ public class AuthService {
         String avatarUrl = (String) githubUser.get("avatar_url");
         String name = (String) githubUser.get("name");
         String email = (String) githubUser.get("email");
-
         // Step 3: Save or update user in Supabase
         Optional<User> existingUser = userRepository.findByGithubId(githubId);
 

@@ -7,11 +7,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -25,40 +27,39 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
 
-        // Step 1: Get Authorization header
         String authHeader = request.getHeader("Authorization");
+        System.out.println("=== JWT FILTER ===");
+        System.out.println("Auth Header: " + authHeader);
 
-        // Step 2: Check if it has a Bearer token
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            System.out.println("No Bearer token found");
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Step 3: Extract the token
         String token = authHeader.substring(7);
+        System.out.println("Token: " + token);
+        System.out.println("Is Valid: " + jwtService.validateToken(token));
 
-        // Step 4: Validate token
         if (!jwtService.validateToken(token)) {
+            System.out.println("Token validation failed");
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.getWriter().write("{\"error\": \"Invalid or expired token\"}");
             return;
         }
 
-        // Step 5: Extract githubId from token
         String githubId = jwtService.extractGithubId(token);
+        System.out.println("GitHub ID: " + githubId);
 
-        // Step 6: Tell Spring Security this request is authenticated
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
                         githubId,
                         null,
-                        new ArrayList<>()
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
                 );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        // Step 7: Continue the request
         filterChain.doFilter(request, response);
     }
 }
