@@ -23,6 +23,7 @@ public class FriendService {
     private final UserRepository userRepository;
     private final GitHubGraphQLService gitHubGraphQLService;
     private final StreakService streakService;
+    private final GitHubCommitService gitHubCommitService;
 
     public String sendFriendRequest(User requester, String targetUsername) {
         User addressee = userRepository.findByUsername(targetUsername)
@@ -91,19 +92,28 @@ public class FriendService {
                         .fetchContributionGraph(user.getUsername(), user.getAccessToken());
                 StreakResponse streak = streakService.calculateStreak(graph);
 
+                // Fetch today's commit summary
+                GitHubCommitService.CommitSummary summary = gitHubCommitService
+                        .fetchTodaysLatestCommit(user.getUsername(), user.getAccessToken());
+
                 entries.add(new LeaderboardEntry(
                         user.getUsername(),
                         user.getAvatarUrl(),
                         streak.getCurrentStreak(),
                         streak.getLongestStreak(),
-                        streak.isCommittedToday()
+                        streak.isCommittedToday(),
+                        summary.message(),
+                        summary.repoName(),
+                        summary.linesAdded(),
+                        summary.linesDeleted(),
+                        summary.privateRepo()
                 ));
             } catch (Exception e) {
-                // Don't let one bad fetch kill the whole leaderboard
                 entries.add(new LeaderboardEntry(
                         user.getUsername(),
                         user.getAvatarUrl(),
-                        0, 0, false
+                        0, 0, false,
+                        null, null, 0, 0, false
                 ));
             }
         }

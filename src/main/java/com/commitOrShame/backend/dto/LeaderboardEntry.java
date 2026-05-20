@@ -13,4 +13,11 @@ public class LeaderboardEntry {
     private int currentStreak;
     private int longestStreak;
     private boolean committedToday;
+
+    // New fields
+    private String lastCommitMessage;   // "implement JWT auth filter"
+    private String lastCommitRepo;      // "CommitOrShame"
+    private int linesAdded;
+    private int linesDeleted;
+    private boolean privateRepo;        // true → hide message, show placeholder
 }

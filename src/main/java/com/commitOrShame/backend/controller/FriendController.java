@@ -60,6 +60,7 @@ public class FriendController {
     // Leaderboard (you + friends ranked by streak)
     @GetMapping("/leaderboard")
     public ResponseEntity<?> getLeaderboard(Authentication auth) {
+        System.out.println("Getting leaderboard for user: " + auth.getName());
         try {
             return ResponseEntity.ok(friendService.getLeaderboard(getUser(auth)));
         } catch (RuntimeException e) {
